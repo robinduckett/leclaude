@@ -31,3 +31,6 @@ cmake_install.cmake
 *.log
 *.tmp
 scratch/
+
+# Local Claude Code configuration and skills. These stay private.
+.claude/

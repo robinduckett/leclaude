@@ -1,13 +1,13 @@
-# Leclaude
+<p align="center">
+  <img src="assets/leclaude.svg" alt="The Leclaude robot" width="128" height="128">
+</p>
 
-<img src="assets/leclaudebot.png" alt="The Leclaude robot" width="96" align="right">
+# Leclaude
 
 Leclaude shows a robot badge in Windows Explorer on each folder that has [Claude Code](https://www.anthropic.com/claude-code) session history.
 When you look through your disk, you can immediately see the folders where you did work with Claude Code.
 
 Leclaude is a shell extension for Windows 10 and Windows 11, on x64 and ARM64.
-
-![Explorer with the Leclaude badges. Two of the four folders have Claude Code session history.](assets/leclaude-screenshot.png)
 
 ## How it operates
 
@@ -16,6 +16,8 @@ Leclaude registers an icon-overlay handler with Explorer.
 For each visible folder, the handler does one fast search in a set in memory.
 When the folder has session history, Explorer draws the robot badge on the folder icon.
 A watcher thread follows the Claude Code data and refreshes the badges.
+
+![Explorer with the Leclaude badges. Two of the four folders have Claude Code session history.](assets/leclaude-screenshot.png)
 
 The design documents give the full details:
 

@@ -15,7 +15,9 @@ The manual verification in Explorer is open: install the handler with administra
 ## Rule 1: All human-facing English must be ASD-STE100
 
 This is the primary rule of the repository.
-Before you write or change any human-facing text, load the skill `asd-ste100` from `.claude/skills/asd-ste100/SKILL.md`.
+Before you write or change any human-facing text, load the skill `asd-ste100` if it is available.
+The skill is a private user skill. It is not a part of the repository.
+Without the skill, follow the official specification, Issue 9: https://www.asd-ste100.org/
 The rule applies to:
 
 - README files and all documents
@@ -43,7 +45,6 @@ STE requires one name for one item. This project uses these names:
 
 - `docs/architecture.md` — the design of the handler, the Windows facts, and the sources.
 - `docs/claude-data-format.md` — how Claude Code records the opened folders. The facts in this document are verified against a real system.
-- `.claude/skills/asd-ste100/SKILL.md` — the writing rules.
 
 ## Key technical facts
 
