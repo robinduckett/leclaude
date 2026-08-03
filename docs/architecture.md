@@ -50,9 +50,37 @@ The design is:
 3. The handler converts each applicable subfolder name to uppercase. It puts the names into a hash set.
 4. In `IsMemberOf`, the handler encodes the given folder path with the Claude Code rule: an ASCII letter or digit stays, and each other character becomes a hyphen. Then the handler converts the result to uppercase and searches the hash set. This search is O(1) and touches no disk.
 5. The uppercase conversion makes the comparison case-insensitive. This is necessary because Windows paths are not case-sensitive, but the encoded names keep the case.
-6. A watcher thread monitors `%USERPROFILE%\.claude\projects\` with `ReadDirectoryChangesW`. When the folder changes, the thread assembles the hash set again. Then it calls `SHChangeNotify(SHCNE_UPDATEITEM, SHCNF_PATHW | SHCNF_FLUSHNOWAIT, path, NULL)` for each folder with a different result. Explorer then asks again and draws or removes the badge.
+6. A watcher thread follows the changes on the disk and updates the set. The section "The cache update" gives the details.
 
 Note: The encode function must copy the Claude Code rule exactly. The rule is ASCII-only. A letter with an accent also becomes a hyphen.
+
+## The cache update
+
+The set in memory must follow the changes on the disk.
+A new session must add a badge. A deleted session history must remove a badge.
+The design is event-driven. A periodic check is the backup.
+
+1. The watcher thread monitors `%USERPROFILE%\.claude\projects\` and its subfolders with `ReadDirectoryChangesW`.
+2. During an active session, Claude Code writes to the transcript file many times each minute. The watcher ignores these write events. It uses only the create events, the delete events, and the rename events for a folder, a `.jsonl` file, or a `sessions-index.json` file.
+3. After an applicable event, the watcher waits for a quiet period of two seconds. Then it assembles the set again. One assembly reads approximately 50 to 200 subfolders and takes milliseconds.
+4. The watcher compares the old set with the new set to find the encoded names with a different result.
+
+`SHChangeNotify` needs the real folder path. But the set contains encoded names, and an encoded name cannot become a path again.
+Thus the handler keeps a second map, with a size limit.
+For each folder path that Explorer gave to `IsMemberOf`, the map records the path and its encoded name.
+When the result for an encoded name changes, the handler finds the recorded paths for that name.
+It calls `SHChangeNotify(SHCNE_UPDATEITEM, SHCNF_PATHW | SHCNF_FLUSHNOWAIT, path, NULL)` for each recorded path.
+Explorer then asks again and draws or removes the badge.
+
+When a changed encoded name has no recorded path, the handler does nothing.
+This is safe. Explorer asks again when the user opens the folder view or refreshes it. The badge is then correct.
+This covers the visible folders, and the other folders get the correct badge on the next view.
+
+The backup for a failed watch: the `.claude` folder can be absent when the handler starts.
+Then `ReadDirectoryChangesW` cannot start.
+In this case, the handler examines the modification time of the projects folder in `IsMemberOf`, a maximum of one time in each 5-second period.
+When the time is different, the handler assembles the set again and tries to start the watcher again.
+The modification time of the projects folder changes when a project subfolder appears or disappears. This is the primary case.
 
 ## The implementation language
 
