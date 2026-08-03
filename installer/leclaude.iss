@@ -42,18 +42,20 @@ ArchitecturesInstallIn64BitMode=x64compatible
 [Files]
 ; The regserver flag runs DllRegisterServer at the installation and
 ; DllUnregisterServer at the removal.
-Source: "{#DllPath}"; DestDir: "{app}"; Flags: ignoreversion regserver 64bit uninsrestartdelete
+Source: "{#DllPath}"; DestDir: "{app}"; Flags: ignoreversion regserver 64bit
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Run]
 ; Explorer reads the overlay list and the badge image only when it starts.
-Filename: "{cmd}"; Parameters: "/c taskkill /f /im explorer.exe & start explorer.exe"; \
+; The deletion of the icon-cache files prevents an old badge image at some sizes.
+Filename: "{cmd}"; Parameters: "/c taskkill /f /im explorer.exe & del /q ""{localappdata}\Microsoft\Windows\Explorer\iconcache_*.db"" & start explorer.exe"; \
     Flags: runhidden; StatusMsg: "The installer restarts Explorer now."
 
 [UninstallRun]
 ; An Explorer stop releases the lock on the DLL before the file deletion.
-Filename: "{cmd}"; Parameters: "/c taskkill /f /im explorer.exe"; Flags: runhidden; \
-    RunOnceId: "StopExplorer"
+; The Code section starts Explorer again after the removal.
+Filename: "{cmd}"; Parameters: "/c taskkill /f /im explorer.exe & del /q ""{localappdata}\Microsoft\Windows\Explorer\iconcache_*.db"""; \
+    Flags: runhidden; RunOnceId: "StopExplorer"
 
 [Code]
 const
@@ -89,8 +91,31 @@ end;
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   ResultCode: Integer;
+  Target, OldName: String;
+  I: Integer;
 begin
+  if CurUninstallStep <> usPostUninstall then
+    Exit;
+
+  { A program with an open file dialog can keep a lock on the DLL.       }
+  { Then the deletion fails, and the file stays. The removal renames the }
+  { file and tells Windows to delete it at the next start. Thus the      }
+  { removal never asks for a restart of the computer.                    }
+  Target := ExpandConstant('{app}\LeclaudeShell.dll');
+  if FileExists(Target) then
+  begin
+    OldName := Target + '.old';
+    I := 0;
+    while FileExists(OldName) and (I < 100) do
+    begin
+      I := I + 1;
+      OldName := Target + '.old-' + IntToStr(I);
+    end;
+    if RenameFile(Target, OldName) then
+      MoveFileExDelayDelete(OldName, 0, MOVEFILE_DELAY_UNTIL_REBOOT);
+    MoveFileExDelayDelete(ExpandConstant('{app}'), 0, MOVEFILE_DELAY_UNTIL_REBOOT);
+  end;
+
   { The removal stops Explorer. This starts it again. }
-  if CurUninstallStep = usPostUninstall then
-    Exec(ExpandConstant('{win}\explorer.exe'), '', '', SW_SHOW, ewNoWait, ResultCode);
+  Exec(ExpandConstant('{win}\explorer.exe'), '', '', SW_SHOW, ewNoWait, ResultCode);
 end;

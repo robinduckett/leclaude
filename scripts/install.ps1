@@ -67,8 +67,10 @@ if ($NoRestart) {
 }
 else {
     # Explorer reads the overlay list and the badge image only when it starts.
+    # The deletion of the icon-cache files prevents an old badge image at some sizes.
     Write-Host 'The script restarts Explorer now.'
     Stop-Process -Name explorer -Force -Confirm:$false
+    Remove-Item "$env:LOCALAPPDATA\Microsoft\Windows\Explorer\iconcache_*.db" -Force -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 2
     if (-not (Get-Process explorer -ErrorAction SilentlyContinue)) {
         Start-Process explorer.exe

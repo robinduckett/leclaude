@@ -37,6 +37,7 @@ if (-not $NoRestart) {
     # Explorer keeps a lock on the DLL. A restart releases it.
     Write-Host 'The script restarts Explorer now.'
     Stop-Process -Name explorer -Force -Confirm:$false
+    Remove-Item "$env:LOCALAPPDATA\Microsoft\Windows\Explorer\iconcache_*.db" -Force -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 2
     if (-not (Get-Process explorer -ErrorAction SilentlyContinue)) {
         Start-Process explorer.exe
