@@ -12,6 +12,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # The DLL loads into Explorer and into other programs. A static C runtime removes the redistributable dependency.
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
+# The resource compiler does not report the icon as a dependency. This property
+# makes sure that a new icon causes a new resource build.
+set_source_files_properties(src/resources.rc PROPERTIES
+  OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets/leclaude.ico
+)
+
 add_library(LeclaudeShell SHARED
   src/dllmain.cpp
   src/class_factory.cpp

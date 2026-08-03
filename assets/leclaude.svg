@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1.00266,0,0,1.004937,0.010638,-0.061134)">
+        <rect x="2.981" y="4.047" width="9.973" height="6.96" style="fill:rgb(234,130,96);"/>
+    </g>
+    <g transform="matrix(0.960813,0,0,0.97487,-0.764797,0.269689)">
+        <rect x="4.959" y="11.007" width="1.046" height="1.026" style="fill:rgb(234,130,96);"/>
+    </g>
+    <g transform="matrix(0.955729,0,0,0.97487,1.46875,0.269689)">
+        <rect x="9.973" y="11.007" width="1.046" height="1.026" style="fill:rgb(234,130,96);"/>
+    </g>
+    <g transform="matrix(0.955729,0,0,0.97487,-0.53125,0.269689)">
+        <rect x="9.973" y="11.007" width="1.046" height="1.026" style="fill:rgb(234,130,96);"/>
+    </g>
+    <g transform="matrix(0.950521,0,0,0.97487,-3.473859,0.269689)">
+        <rect x="9.973" y="11.007" width="1.046" height="1.026" style="fill:rgb(234,130,96);"/>
+    </g>
+    <g transform="matrix(1.024912,0,0,0.996451,-0.33201,0.007502)">
+        <rect x="13.008" y="7.017" width="0.976" height="2.007" style="fill:rgb(234,130,96);"/>
+    </g>
+    <g transform="matrix(1.002514,0,0,0.996451,0.000435,0.007502)">
+        <rect x="1.995" y="7.017" width="0.997" height="2.007" style="fill:rgb(234,130,96);"/>
+    </g>
+    <g transform="matrix(0.960813,0,0,0.986559,0.235333,0.107527)">
+        <rect x="4.959" y="5.973" width="1.046" height="2.027"/>
+    </g>
+    <g transform="matrix(0.955729,0,0,0.986559,0.46875,0.107527)">
+        <rect x="9.973" y="5.973" width="1.046" height="2.027"/>
+    </g>
+    <g transform="matrix(0.998411,0,0,1.023591,0.012712,-0.094491)">
+        <rect x="2.992" y="3.023" width="10.016" height="0.982"/>
+    </g>
+    <g transform="matrix(1.024912,0,0,1.00457,-0.33201,-0.018306)">
+        <rect x="13.008" y="4.005" width="0.976" height="2.981"/>
+    </g>
+    <g transform="matrix(0.990051,0,0,0.995867,0.155468,0.008041)">
+        <rect x="13.984" y="7.017" width="1.01" height="2.007"/>
+    </g>
+    <g transform="matrix(1.024912,0,0,1.00888,-0.33201,-0.104662)">
+        <rect x="13.008" y="9.025" width="0.976" height="1.982"/>
+    </g>
+    <g transform="matrix(1.005589,0,0,0.97487,-4.08066,0.269689)">
+        <rect x="11.019" y="11.007" width="1.989" height="1.026"/>
+    </g>
+    <g transform="matrix(0.955729,0,0,1.127482,-0.53125,-1.566654)">
+        <rect x="9.973" y="12.033" width="1.046" height="0.887"/>
+    </g>
+    <g transform="matrix(0.950521,0,0,1.127482,-3.473859,-1.566654)">
+        <rect x="9.973" y="12.033" width="1.046" height="0.887"/>
+    </g>
+    <g transform="matrix(0.955729,0,0,1.127482,1.46875,-1.566654)">
+        <rect x="9.973" y="12.033" width="1.046" height="0.887"/>
+    </g>
+    <g transform="matrix(0.955853,0,0,1.127482,-5.532487,-1.566654)">
+        <rect x="9.973" y="12.033" width="1.046" height="0.887"/>
+    </g>
+    <g transform="matrix(0.955729,0,0,1.127482,-6.53125,-2.566654)">
+        <rect x="9.973" y="12.033" width="1.046" height="0.887"/>
+    </g>
+    <g transform="matrix(0.955729,0,0,1.127482,2.46875,-2.566654)">
+        <rect x="9.973" y="12.033" width="1.046" height="0.887"/>
+    </g>
+    <g transform="matrix(0.960813,0,0,1.127482,0.235333,-2.566654)">
+        <rect x="4.959" y="12.033" width="1.046" height="0.887"/>
+    </g>
+    <g transform="matrix(0.955729,0,0,1.127482,5.260417,-2.566654)">
+        <rect x="4.959" y="12.033" width="1.046" height="0.887"/>
+    </g>
+    <g transform="matrix(1.002514,0,0,1.00888,0.000435,-0.104662)">
+        <rect x="1.995" y="9.025" width="0.997" height="1.982"/>
+    </g>
+    <g transform="matrix(1.050637,0,0,0.996451,-0.095548,0.007502)">
+        <rect x="1.043" y="7.017" width="0.952" height="2.007"/>
+    </g>
+    <g transform="matrix(1.002514,0,0,0.994223,0.000435,0.02314)">
+        <rect x="1.995" y="4.005" width="0.997" height="3.012"/>
+    </g>
+</svg>
