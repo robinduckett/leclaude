@@ -9,7 +9,7 @@ When you look through your disk, you can immediately see the folders where you d
 
 Leclaude is a shell extension for Windows 10 and Windows 11, on x64 and ARM64.
 
-## <img src="assets/preview-16px.png" width="20" align="middle" alt=""> How it operates
+## <img src="assets/preview-16px.png" width="20" alt=""> How it operates
 
 Claude Code records each opened folder in `%USERPROFILE%\.claude\projects\`.
 Leclaude registers an icon-overlay handler with Explorer.
@@ -24,7 +24,7 @@ The design documents give the full details:
 - [The architecture](docs/architecture.md)
 - [The Claude Code data format](docs/claude-data-format.md)
 
-## <img src="assets/preview-16px.png" width="20" align="middle" alt=""> Installation
+## <img src="assets/preview-16px.png" width="20" alt=""> Installation
 
 1. Download the zip file for your processor from the [releases page](../../releases): `x64` or `arm64`.
 2. Make sure that the file is authentic (optional, see below).
@@ -47,7 +47,7 @@ gh attestation verify Leclaude-<tag>-x64.zip --owner robinduckett
 
 The command shows the workflow and the commit that made the file.
 
-## <img src="assets/preview-16px.png" width="20" align="middle" alt=""> Compilation from the source
+## <img src="assets/preview-16px.png" width="20" alt=""> Compilation from the source
 
 The build uses CMake with the Ninja generator. Visual Studio contains both tools.
 
@@ -56,13 +56,13 @@ The build uses CMake with the Ninja generator. Visual Studio contains both tools
 3. Enter: `cmake --build --preset x64-release`
 4. To do the tests, enter: `ctest --test-dir build/x64-release --output-on-failure`
 
-## <img src="assets/preview-16px.png" width="20" align="middle" alt=""> Limits
+## <img src="assets/preview-16px.png" width="20" alt=""> Limits
 
 - The installation needs administrator rights. Windows accepts overlay registrations in HKLM only.
 - Windows shows a maximum of 15 overlay types for the full system. Cloud-storage tools use many of them. When too many tools compete, Windows can ignore the Leclaude badge. The [ShellExView](https://www.nirsoft.net/utils/shexview.html) tool shows the competition on your system.
 - In a cloud sync folder (for example, a OneDrive folder), Windows 11 can hide third-party badges.
 
-## <img src="assets/preview-16px.png" width="20" align="middle" alt=""> Problems and solutions
+## <img src="assets/preview-16px.png" width="20" alt=""> Problems and solutions
 
 The badge shows an old icon after an update, but only at some sizes:
 Explorer keeps the icons in cache files on the disk, with one file for each size.
@@ -80,6 +80,6 @@ The badge does not show at all:
 Windows shows a maximum of 15 overlay types. Use the ShellExView tool to see the loaded handlers.
 Make sure that the name " Leclaude" is in the first 15 names under the registry key `ShellIconOverlayIdentifiers`.
 
-## <img src="assets/preview-16px.png" width="20" align="middle" alt=""> License
+## <img src="assets/preview-16px.png" width="20" alt=""> License
 
 MIT. See [LICENSE](LICENSE).
