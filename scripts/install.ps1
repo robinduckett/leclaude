@@ -29,15 +29,31 @@ $installDir = Join-Path $env:ProgramFiles 'Leclaude'
 $target = Join-Path $installDir 'LeclaudeShell.dll'
 New-Item -ItemType Directory -Force $installDir | Out-Null
 
+# Remove the files that an earlier upgrade left. A locked file stays, and that is not a problem.
+Get-ChildItem -Path $installDir -Filter 'LeclaudeShell.dll.old-*' -ErrorAction SilentlyContinue |
+    ForEach-Object {
+        try { Remove-Item $_.FullName -Force -Confirm:$false } catch {}
+    }
+
 try {
     Copy-Item $DllPath $target -Force
 }
 catch {
-    # Explorer keeps a lock on an installed DLL. Stop Explorer, then copy again.
-    Write-Host 'The installed DLL is locked. The script stops Explorer to release it.'
-    Stop-Process -Name explorer -Force -Confirm:$false
-    Start-Sleep -Seconds 2
+    # Explorer and other programs keep a lock on the installed DLL.
+    # Windows does not let a copy replace a locked file. But Windows lets a
+    # rename move it. The script moves the locked DLL to a temporary name,
+    # copies the new DLL to the correct name, and tells Windows to delete
+    # the old file at the next start of the computer.
+    Write-Host 'The installed DLL is locked. The script moves it to a temporary name.'
+    $oldName = "$target.old-" + [guid]::NewGuid().ToString('N').Substring(0, 8)
+    Move-Item -Path $target -Destination $oldName -Force
     Copy-Item $DllPath $target -Force
+
+    Add-Type -Namespace Leclaude -Name Native -MemberDefinition @'
+[DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+public static extern bool MoveFileEx(string existing, string target, int flags);
+'@
+    [void][Leclaude.Native]::MoveFileEx($oldName, $null, 4)
 }
 
 $reg = Start-Process regsvr32.exe -ArgumentList '/s', "`"$target`"" -Wait -PassThru
@@ -50,7 +66,7 @@ if ($NoRestart) {
     Write-Host 'The installation is complete. Restart Explorer to see the badges.'
 }
 else {
-    # Explorer reads the overlay list only when it starts.
+    # Explorer reads the overlay list and the badge image only when it starts.
     Write-Host 'The script restarts Explorer now.'
     Stop-Process -Name explorer -Force -Confirm:$false
     Start-Sleep -Seconds 2
