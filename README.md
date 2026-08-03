@@ -58,6 +58,24 @@ The build uses CMake with the Ninja generator. Visual Studio contains both tools
 - Windows shows a maximum of 15 overlay types for the full system. Cloud-storage tools use many of them. When too many tools compete, Windows can ignore the Leclaude badge. The [ShellExView](https://www.nirsoft.net/utils/shexview.html) tool shows the competition on your system.
 - In a cloud sync folder (for example, a OneDrive folder), Windows 11 can hide third-party badges.
 
+## Problems and solutions
+
+The badge shows an old icon after an update, but only at some sizes:
+Explorer keeps the icons in cache files on the disk, with one file for each size.
+An Explorer restart does not delete these files. To delete them, enter these commands in PowerShell:
+
+```powershell
+Stop-Process -Name explorer -Force
+Remove-Item "$env:LOCALAPPDATA\Microsoft\Windows\Explorer\iconcache_*.db" -Force -ErrorAction SilentlyContinue
+if (-not (Get-Process explorer -ErrorAction SilentlyContinue)) { Start-Process explorer.exe }
+```
+
+A restart of the computer also corrects this.
+
+The badge does not show at all:
+Windows shows a maximum of 15 overlay types. Use the ShellExView tool to see the loaded handlers.
+Make sure that the name " Leclaude" is in the first 15 names under the registry key `ShellIconOverlayIdentifiers`.
+
 ## Documentation language
 
 All the text in this repository obeys [ASD-STE100](https://www.asd-ste100.org/) (Simplified Technical English), Issue 9.
