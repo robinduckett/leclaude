@@ -78,6 +78,7 @@ Repository description (STE): "Leclaude shows a robot badge in Explorer on each 
 - The license is MIT.
 - The build system is CMake with Ninja, through the Visual Studio toolchain.
 - The installer is an Inno Setup program: `installer/leclaude.iss`. The zip file gives the manual alternative: `scripts/install.cmd` starts `scripts/install.ps1` with administrator rights.
+- The MSI package comes from WiX: `installer/wix/Leclaude.wxs`. It writes the registration directly and does not call DllRegisterServer. WiX stays on version 5, because the later versions need the OSMF license agreement.
 - The releases come from the GitHub workflow `.github/workflows/release.yml`. The workflow attests each zip file with GitHub artifact attestation.
 
 ## Release procedure

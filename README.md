@@ -42,6 +42,8 @@ The zip file is the manual alternative:
 
 To remove this installation, do a double click on `uninstall.cmd`.
 
+The MSI package (`Leclaude-<version>-<processor>.msi`) gives the same installation for winget and for managed deployment.
+
 Windows SmartScreen can show a warning, because the files have no signature.
 If Windows shows the warning, select "More info", then "Run anyway".
 The attestation check below is the correct test that a file is authentic.
