@@ -7,6 +7,8 @@ When you look through your disk, you can immediately see the folders where you d
 
 Leclaude is a shell extension for Windows 10 and Windows 11, on x64 and ARM64.
 
+![Explorer with the Leclaude badges. Two of the four folders have Claude Code session history.](assets/leclaude-screenshot.png)
+
 ## How it operates
 
 Claude Code records each opened folder in `%USERPROFILE%\.claude\projects\`.
