@@ -60,8 +60,8 @@ The set in memory must follow the changes on the disk.
 A new session must add a badge. A deleted session history must remove a badge.
 The design is event-driven. A periodic check is the backup.
 
-1. The watcher thread monitors `%USERPROFILE%\.claude\projects\` and its subfolders with `ReadDirectoryChangesW`.
-2. During an active session, Claude Code writes to the transcript file many times each minute. The watcher ignores these write events. It uses only the create events, the delete events, and the rename events for a folder, a `.jsonl` file, or a `sessions-index.json` file.
+1. The watcher thread monitors `%USERPROFILE%\.claude\projects\` and its subfolders with `FindFirstChangeNotificationW`. The filter is `FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME`.
+2. During an active session, Claude Code writes to the transcript file many times each minute. The filter has no "last write" flag. Thus these writes do not wake the watcher. Only a create, a delete, or a rename of a file or a folder wakes it.
 3. After an applicable event, the watcher waits for a quiet period of two seconds. Then it assembles the set again. One assembly reads approximately 50 to 200 subfolders and takes milliseconds.
 4. The watcher compares the old set with the new set to find the encoded names with a different result.
 
@@ -77,7 +77,7 @@ This is safe. Explorer asks again when the user opens the folder view or refresh
 This covers the visible folders, and the other folders get the correct badge on the next view.
 
 The backup for a failed watch: the `.claude` folder can be absent when the handler starts.
-Then `ReadDirectoryChangesW` cannot start.
+Then the change notification cannot start.
 In this case, the handler examines the modification time of the projects folder in `IsMemberOf`, a maximum of one time in each 5-second period.
 When the time is different, the handler assembles the set again and tries to start the watcher again.
 The modification time of the projects folder changes when a project subfolder appears or disappears. This is the primary case.
@@ -129,7 +129,8 @@ Thus the removal tool must restart Explorer, or it must schedule the file deleti
 | --- | --- |
 | `LeclaudeShell.dll` | The icon-overlay handler. C++, x64 and ARM64. |
 | `leclaude.ico` | The badge icon, made from `assets/leclaudebot.png`. Overlay icons are small. The icon must stay clear at 10x10 pixels. |
-| Installer | Registers the handler and restarts Explorer. |
+| `scripts/install.ps1` and `scripts/uninstall.ps1` | The installation and removal scripts. They register the handler and restart Explorer. |
+| `tests/` | The scan tests and the COM smoke test. The smoke test loads the DLL without the registry. |
 | `leclaude doctor` (possible future tool) | A command-line tool that shows the detection result for a folder. This tool can read `.claude.json`, because it has no speed limits. |
 
 ## Reference projects

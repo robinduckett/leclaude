@@ -1,0 +1,37 @@
+# The CI workflow. It compiles both architectures and does the tests on x64.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - preset: x64-release
+            arch: x64
+          - preset: arm64-release
+            arch: x64_arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      # This action prepares the MSVC environment, as a developer shell does.
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Compile
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      # The ARM64 programs cannot operate on the x64 build machine.
+      - name: Test
+        if: matrix.arch == 'x64'
+        run: ctest --test-dir build/${{ matrix.preset }} --output-on-failure

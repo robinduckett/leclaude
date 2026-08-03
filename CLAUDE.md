@@ -9,7 +9,8 @@ It shows a small robot badge on each folder that has Claude Code session history
 The user can then find these folders quickly in Explorer.
 The project is part of the portfolio and blog at robinduckett.com.
 
-Project status: design phase. The research is complete. The code does not exist yet.
+Project status: the implementation is complete. The tests pass.
+The manual verification in Explorer is open: install the handler with administrator rights and look at the badges.
 
 ## Rule 1: All human-facing English must be ASD-STE100
 
@@ -75,7 +76,12 @@ Repository description (STE): "Leclaude shows a robot badge in Explorer on each 
 
 - The license is MIT.
 - The build system is CMake with Ninja, through the Visual Studio toolchain.
+- The installer is a pair of PowerShell scripts: `scripts/install.ps1` and `scripts/uninstall.ps1`.
+- The releases come from the GitHub workflow `.github/workflows/release.yml`. The workflow attests each zip file with GitHub artifact attestation.
 
-## Not decided yet
+## Release procedure
 
-- The installer technology (MSI, Inno Setup, or a script).
+1. Make sure that the CI workflow is green.
+2. Update the version numbers in `src/resources.rc`.
+3. Make a tag with the form `vX.Y.Z` and push it.
+4. The release workflow compiles both architectures, does the tests, packages the zip files, attests them, and publishes the release.

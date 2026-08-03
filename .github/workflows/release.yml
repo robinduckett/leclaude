@@ -1,0 +1,97 @@
+# The release workflow. A tag with the form "v*" starts it.
+#
+# The workflow compiles both architectures, packages the zip files, and
+# publishes a GitHub release. It attests the build provenance with Sigstore.
+# A user can then make sure that a zip file comes from this repository:
+#
+#   gh attestation verify Leclaude-<tag>-x64.zip --owner robinduckett
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - preset: x64-release
+            arch: x64
+            name: x64
+          - preset: arm64-release
+            arch: x64_arm64
+            name: arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Compile
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: Test
+        if: matrix.arch == 'x64'
+        run: ctest --test-dir build/${{ matrix.preset }} --output-on-failure
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $stage = 'stage/Leclaude'
+          New-Item -ItemType Directory -Force $stage | Out-Null
+          Copy-Item "build/${{ matrix.preset }}/LeclaudeShell.dll" $stage
+          Copy-Item scripts/install.ps1, scripts/uninstall.ps1 $stage
+          Copy-Item LICENSE, README.md $stage
+          Compress-Archive -Path "$stage/*" -DestinationPath "Leclaude-${{ github.ref_name }}-${{ matrix.name }}.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ matrix.name }}
+          path: Leclaude-*.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Make the checksum file
+        run: sha256sum Leclaude-*.zip > SHA256SUMS.txt
+
+      # The attestation records which workflow made each file. Sigstore signs the record.
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: 'Leclaude-*.zip'
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            Leclaude-*.zip
+            SHA256SUMS.txt
+          body: |
+            Leclaude shows a robot badge in Explorer on each folder that has Claude Code session history.
+
+            ## Installation
+
+            1. Download the zip file for your processor: `x64` or `arm64`.
+            2. Make sure that the file is authentic: `gh attestation verify <zip-file> --owner robinduckett`
+            3. Unpack the zip file.
+            4. Open an administrator PowerShell in the unpacked folder.
+            5. Enter: `.\install.ps1`
+
+            The script registers the handler and restarts Explorer.
+            To remove Leclaude, enter: `.\uninstall.ps1`
