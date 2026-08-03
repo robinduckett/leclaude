@@ -80,12 +80,6 @@ The badge does not show at all:
 Windows shows a maximum of 15 overlay types. Use the ShellExView tool to see the loaded handlers.
 Make sure that the name " Leclaude" is in the first 15 names under the registry key `ShellIconOverlayIdentifiers`.
 
-## Documentation language
-
-All the text in this repository obeys [ASD-STE100](https://www.asd-ste100.org/) (Simplified Technical English), Issue 9.
-STE is the international standard for clear technical documentation.
-This project uses it as an experiment in readable open-source documentation.
-
 ## License
 
 MIT. See [LICENSE](LICENSE).
