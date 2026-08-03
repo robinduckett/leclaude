@@ -53,12 +53,29 @@ STE requires one name for one item. This project uses these names:
 - The detection rule: encode the folder path (each character that is not an ASCII letter or digit becomes a hyphen). Search the encoded name in the set of known project folders from `%USERPROFILE%\.claude\projects\`. Compare without case sensitivity.
 - The stack is plain C++ without ATL, with a static C runtime, for x64 and ARM64.
 
+## Build
+
+The build uses CMake with the Ninja generator.
+Visual Studio contains both tools in the component "C++ CMake tools for Windows".
+The minimum is CMake 3.26. Visual Studio 2026 satisfies this.
+
+1. Open a Developer PowerShell for Visual Studio.
+2. Enter: `cmake --preset x64-release`
+3. Enter: `cmake --build --preset x64-release`
+
+The presets are `x64-debug`, `x64-release`, and `arm64-release`.
+For the `arm64-release` preset, open the developer shell with the `x64_arm64` tools.
+As an alternative, open the folder in Visual Studio. Visual Studio finds the presets and prepares the environment.
+
 ## GitHub metadata
 
 Repository description (STE): "Leclaude shows a robot badge in Explorer on each folder that has Claude Code session history."
 
+## Decided
+
+- The license is MIT.
+- The build system is CMake with Ninja, through the Visual Studio toolchain.
+
 ## Not decided yet
 
-- The license. Ask the user before you add a license file.
-- The build system (CMake or MSBuild).
 - The installer technology (MSI, Inno Setup, or a script).
