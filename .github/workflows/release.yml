@@ -53,13 +53,24 @@ jobs:
           New-Item -ItemType Directory -Force $stage | Out-Null
           Copy-Item "build/${{ matrix.preset }}/LeclaudeShell.dll" $stage
           Copy-Item scripts/install.ps1, scripts/uninstall.ps1 $stage
+          Copy-Item scripts/install.cmd, scripts/uninstall.cmd $stage
           Copy-Item LICENSE, README.md $stage
           Compress-Archive -Path "$stage/*" -DestinationPath "Leclaude-${{ github.ref_name }}-${{ matrix.name }}.zip"
+
+      - name: Make the installer
+        shell: pwsh
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) { choco install innosetup -y --no-progress }
+          $version = '${{ github.ref_name }}'.TrimStart('v')
+          iscc /Q "/DAppVersion=$version" /DArch=${{ matrix.name }} installer/leclaude.iss
+          Move-Item installer/output/*.exe .
 
       - uses: actions/upload-artifact@v4
         with:
           name: package-${{ matrix.name }}
-          path: Leclaude-*.zip
+          path: |
+            Leclaude-*.zip
+            LeclaudeSetup-*.exe
 
   release:
     needs: build
@@ -70,28 +81,33 @@ jobs:
           merge-multiple: true
 
       - name: Make the checksum file
-        run: sha256sum Leclaude-*.zip > SHA256SUMS.txt
+        run: sha256sum Leclaude-*.zip LeclaudeSetup-*.exe > SHA256SUMS.txt
 
       # The attestation records which workflow made each file. Sigstore signs the record.
       - uses: actions/attest-build-provenance@v2
         with:
-          subject-path: 'Leclaude-*.zip'
+          subject-path: |
+            Leclaude-*.zip
+            LeclaudeSetup-*.exe
 
       - uses: softprops/action-gh-release@v2
         with:
           files: |
             Leclaude-*.zip
+            LeclaudeSetup-*.exe
             SHA256SUMS.txt
           body: |
             Leclaude shows a robot badge in Explorer on each folder that has Claude Code session history.
 
             ## Installation
 
-            1. Download the zip file for your processor: `x64` or `arm64`.
-            2. Make sure that the file is authentic: `gh attestation verify <zip-file> --owner robinduckett`
-            3. Unpack the zip file.
-            4. Open an administrator PowerShell in the unpacked folder.
-            5. Enter: `.\install.ps1`
+            1. Download the setup program for your processor: `LeclaudeSetup-<version>-x64.exe` or `LeclaudeSetup-<version>-arm64.exe`.
+            2. Start it and give permission. The installer registers the handler and restarts Explorer.
 
-            The script registers the handler and restarts Explorer.
-            To remove Leclaude, enter: `.\uninstall.ps1`
+            To remove Leclaude, use "Installed apps" in the Windows settings.
+
+            Windows SmartScreen can show a warning, because the files have no signature.
+            If Windows shows the warning, select "More info", then "Run anyway".
+            To make sure that a file is authentic, enter: `gh attestation verify <file> --owner robinduckett`
+
+            The zip file is the manual alternative. Unpack it and do a double click on `install.cmd`.

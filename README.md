@@ -26,23 +26,33 @@ The design documents give the full details:
 
 ## <img src="assets/preview-16px.png" width="20" alt=""> Installation
 
-1. Download the zip file for your processor from the [releases page](../../releases): `x64` or `arm64`.
-2. Make sure that the file is authentic (optional, see below).
-3. Unpack the zip file.
-4. Open an administrator PowerShell in the unpacked folder.
-5. Enter: `.\install.ps1`
+The [releases page](../../releases) gives a setup program and a zip file for each processor: `x64` or `arm64`.
 
-The script copies the DLL to `%ProgramFiles%\Leclaude`, registers the handler, and restarts Explorer.
+The setup program is the recommended installation:
 
-To remove Leclaude, enter: `.\uninstall.ps1`
+1. Download `LeclaudeSetup-<version>-<processor>.exe`.
+2. Start it and give permission. The installer registers the handler and restarts Explorer.
+
+To remove Leclaude, use "Installed apps" in the Windows settings.
+
+The zip file is the manual alternative:
+
+1. Download and unpack `Leclaude-<tag>-<processor>.zip`.
+2. Do a double click on `install.cmd` and give permission.
+
+To remove this installation, do a double click on `uninstall.cmd`.
+
+Windows SmartScreen can show a warning, because the files have no signature.
+If Windows shows the warning, select "More info", then "Run anyway".
+The attestation check below is the correct test that a file is authentic.
 
 ### Make sure that a release is authentic
 
 The release workflow attests each zip file with [GitHub artifact attestation](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations).
-Sigstore signs the attestation. To do a check, enter:
+Sigstore signs the attestation. To do a check on a setup program or a zip file, enter:
 
 ```
-gh attestation verify Leclaude-<tag>-x64.zip --owner robinduckett
+gh attestation verify <file> --owner robinduckett
 ```
 
 The command shows the workflow and the commit that made the file.

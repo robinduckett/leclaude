@@ -26,6 +26,7 @@ cmake_install.cmake
 *.msi
 *.msix
 *.zip
+installer/output/
 
 # Local scratch
 *.log

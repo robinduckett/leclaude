@@ -4,8 +4,8 @@
 1 ICON "..\\assets\\leclaude.ico"
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,1,0,0
- PRODUCTVERSION 0,1,0,0
+ FILEVERSION 0,1,1,0
+ PRODUCTVERSION 0,1,1,0
  FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
  FILEFLAGS 0x0L
  FILEOS VOS_NT_WINDOWS32
@@ -18,12 +18,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Robin Duckett"
             VALUE "FileDescription", "Leclaude overlay handler"
-            VALUE "FileVersion", "0.1.0.0"
+            VALUE "FileVersion", "0.1.1.0"
             VALUE "InternalName", "LeclaudeShell"
             VALUE "LegalCopyright", "Copyright (c) 2026 Robin Duckett. MIT license."
             VALUE "OriginalFilename", "LeclaudeShell.dll"
             VALUE "ProductName", "Leclaude"
-            VALUE "ProductVersion", "0.1.0.0"
+            VALUE "ProductVersion", "0.1.1.0"
         END
     END
     BLOCK "VarFileInfo"

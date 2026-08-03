@@ -15,8 +15,10 @@ jobs:
         include:
           - preset: x64-release
             arch: x64
+            name: x64
           - preset: arm64-release
             arch: x64_arm64
+            name: arm64
     steps:
       - uses: actions/checkout@v4
 
@@ -35,3 +37,14 @@ jobs:
       - name: Test
         if: matrix.arch == 'x64'
         run: ctest --test-dir build/${{ matrix.preset }} --output-on-failure
+
+      - name: Make the installer
+        shell: pwsh
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) { choco install innosetup -y --no-progress }
+          iscc /Q /DAppVersion=0.0.0 /DArch=${{ matrix.name }} installer/leclaude.iss
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.name }}
+          path: installer/output/*.exe

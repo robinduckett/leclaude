@@ -77,7 +77,7 @@ Repository description (STE): "Leclaude shows a robot badge in Explorer on each 
 
 - The license is MIT.
 - The build system is CMake with Ninja, through the Visual Studio toolchain.
-- The installer is a pair of PowerShell scripts: `scripts/install.ps1` and `scripts/uninstall.ps1`.
+- The installer is an Inno Setup program: `installer/leclaude.iss`. The zip file gives the manual alternative: `scripts/install.cmd` starts `scripts/install.ps1` with administrator rights.
 - The releases come from the GitHub workflow `.github/workflows/release.yml`. The workflow attests each zip file with GitHub artifact attestation.
 
 ## Release procedure
