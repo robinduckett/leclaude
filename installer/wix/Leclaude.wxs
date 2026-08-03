@@ -21,7 +21,7 @@
     <MajorUpgrade DowngradeErrorMessage="A newer version of Leclaude is installed. Remove it first." />
     <MediaTemplate EmbedCab="yes" />
 
-    <Icon Id="LeclaudeIcon" SourceFile="..\..\assets\leclaude.ico" />
+    <Icon Id="LeclaudeIcon" SourceFile="$(sys.SOURCEFILEDIR)..\..\assets\leclaude.ico" />
     <Property Id="ARPPRODUCTICON" Value="LeclaudeIcon" />
     <Property Id="ARPURLINFOABOUT" Value="https://github.com/robinduckett/leclaude" />
 
@@ -60,7 +60,7 @@
         </Component>
 
         <Component Id="LicenseFile">
-          <File Source="..\..\LICENSE" />
+          <File Source="$(sys.SOURCEFILEDIR)..\..\LICENSE" />
         </Component>
 
       </Directory>
