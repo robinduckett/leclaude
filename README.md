@@ -21,8 +21,8 @@ A watcher thread follows the Claude Code data and refreshes the badges.
 
 The design documents give the full details:
 
-- [The architecture](docs/architecture.md)
-- [The Claude Code data format](docs/claude-data-format.md)
+<img src="assets/preview-16px.png" width="16" alt="-"> [The architecture](docs/architecture.md)  
+<img src="assets/preview-16px.png" width="16" alt="-"> [The Claude Code data format](docs/claude-data-format.md)
 
 ## Installation
 
@@ -58,9 +58,11 @@ The build uses CMake with the Ninja generator. Visual Studio contains both tools
 
 ## Limits
 
-- The installation needs administrator rights. Windows accepts overlay registrations in HKLM only.
-- Windows shows a maximum of 15 overlay types for the full system. Cloud-storage tools use many of them. When too many tools compete, Windows can ignore the Leclaude badge. The [ShellExView](https://www.nirsoft.net/utils/shexview.html) tool shows the competition on your system.
-- In a cloud sync folder (for example, a OneDrive folder), Windows 11 can hide third-party badges.
+<img src="assets/preview-16px.png" width="16" alt="-"> The installation needs administrator rights. Windows accepts overlay registrations in HKLM only.
+
+<img src="assets/preview-16px.png" width="16" alt="-"> Windows shows a maximum of 15 overlay types for the full system. Cloud-storage tools use many of them. When too many tools compete, Windows can ignore the Leclaude badge. The [ShellExView](https://www.nirsoft.net/utils/shexview.html) tool shows the competition on your system.
+
+<img src="assets/preview-16px.png" width="16" alt="-"> In a cloud sync folder (for example, a OneDrive folder), Windows 11 can hide third-party badges.
 
 ## Problems and solutions
 
