@@ -1,12 +1,20 @@
 // Leclaude - the entry points of the handler DLL.
 
-#include <windows.h>
+#include "module.h"
+
+#include "class_factory.h"
+
 #include <olectl.h>
+
+#include <new>
 
 HINSTANCE g_module = nullptr;
 
-// The count of live COM objects and locks. The handler increments and decrements it.
+// The count of live COM objects and locks. DllCanUnloadNow reads it.
 volatile LONG g_objectCount = 0;
+
+HRESULT RegisterServer();
+HRESULT UnregisterServer();
 
 extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID)
 {
@@ -24,24 +32,33 @@ STDAPI DllCanUnloadNow()
     return (g_objectCount == 0) ? S_OK : S_FALSE;
 }
 
-STDAPI DllGetClassObject(REFCLSID, REFIID, void** result)
+STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void** result)
 {
     if (result == nullptr)
     {
         return E_POINTER;
     }
     *result = nullptr;
-    // The class factory for the handler comes in a later change.
-    return CLASS_E_CLASSNOTAVAILABLE;
+    if (rclsid != CLSID_LeclaudeOverlay)
+    {
+        return CLASS_E_CLASSNOTAVAILABLE;
+    }
+    LeclaudeClassFactory* factory = new (std::nothrow) LeclaudeClassFactory();
+    if (factory == nullptr)
+    {
+        return E_OUTOFMEMORY;
+    }
+    const HRESULT hr = factory->QueryInterface(riid, result);
+    factory->Release();
+    return hr;
 }
 
 STDAPI DllRegisterServer()
 {
-    // The registration code comes in a later change.
-    return E_NOTIMPL;
+    return RegisterServer();
 }
 
 STDAPI DllUnregisterServer()
 {
-    return E_NOTIMPL;
+    return UnregisterServer();
 }
