@@ -65,6 +65,9 @@ The minimum is CMake 3.26. Visual Studio 2026 satisfies this.
 2. Enter: `cmake --preset x64-release`
 3. Enter: `cmake --build --preset x64-release`
 
+The installers package the DLL from the build folder.
+After each change of the source or the version, compile again before you make an installer.
+
 The presets are `x64-debug`, `x64-release`, and `arm64-release`.
 For the `arm64-release` preset, open the developer shell with the `x64_arm64` tools.
 As an alternative, open the folder in Visual Studio. Visual Studio finds the presets and prepares the environment.
@@ -78,7 +81,7 @@ Repository description (STE): "Leclaude shows a robot badge in Explorer on each 
 - The license is MIT.
 - The build system is CMake with Ninja, through the Visual Studio toolchain.
 - The installer is an Inno Setup program: `installer/leclaude.iss`. The zip file gives the manual alternative: `scripts/install.cmd` starts `scripts/install.ps1` with administrator rights.
-- The MSI package comes from WiX: `installer/wix/Leclaude.wxs`. It writes the registration directly and does not call DllRegisterServer. WiX stays on version 5, because the later versions need the OSMF license agreement.
+- There is no MSI package. A test on a real system showed the problem: the Restart Manager stopped Explorer and the installation then did not continue. The setup program gives the correct installation experience. Winget accepts a setup program from Inno Setup.
 - The releases come from the GitHub workflow `.github/workflows/release.yml`. The workflow attests each zip file with GitHub artifact attestation.
 
 ## Release procedure

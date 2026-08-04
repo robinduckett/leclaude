@@ -65,23 +65,11 @@ jobs:
           iscc /Q "/DAppVersion=$version" /DArch=${{ matrix.name }} installer/leclaude.iss
           Move-Item installer/output/*.exe .
 
-      # WiX stays on version 5. The later versions need the OSMF license agreement.
-      - name: Make the MSI
-        shell: pwsh
-        run: |
-          dotnet tool install --global wix --version 5.0.2
-          wix extension add -g WixToolset.Util.wixext/5.0.2
-          $version = '${{ github.ref_name }}'.TrimStart('v')
-          wix build installer/wix/Leclaude.wxs -arch ${{ matrix.name }} -ext WixToolset.Util.wixext `
-            -d AppVersion=$version -d DllPath=build/${{ matrix.preset }}/LeclaudeShell.dll `
-            -o "Leclaude-$version-${{ matrix.name }}.msi"
-
       - uses: actions/upload-artifact@v4
         with:
           name: package-${{ matrix.name }}
           path: |
             Leclaude-*.zip
-            Leclaude-*.msi
             LeclaudeSetup-*.exe
 
   release:
@@ -93,21 +81,19 @@ jobs:
           merge-multiple: true
 
       - name: Make the checksum file
-        run: sha256sum Leclaude-*.zip Leclaude-*.msi LeclaudeSetup-*.exe > SHA256SUMS.txt
+        run: sha256sum Leclaude-*.zip LeclaudeSetup-*.exe > SHA256SUMS.txt
 
       # The attestation records which workflow made each file. Sigstore signs the record.
       - uses: actions/attest-build-provenance@v2
         with:
           subject-path: |
             Leclaude-*.zip
-            Leclaude-*.msi
             LeclaudeSetup-*.exe
 
       - uses: softprops/action-gh-release@v2
         with:
           files: |
             Leclaude-*.zip
-            Leclaude-*.msi
             LeclaudeSetup-*.exe
             SHA256SUMS.txt
           body: |
@@ -125,4 +111,3 @@ jobs:
             To make sure that a file is authentic, enter: `gh attestation verify <file> --owner robinduckett`
 
             The zip file is the manual alternative. Unpack it and do a double click on `install.cmd`.
-            The MSI package is for winget and for managed deployment.

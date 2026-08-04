@@ -44,19 +44,7 @@ jobs:
           if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) { choco install innosetup -y --no-progress }
           iscc /Q /DAppVersion=0.0.0 /DArch=${{ matrix.name }} installer/leclaude.iss
 
-      # WiX stays on version 5. The later versions need the OSMF license agreement.
-      - name: Make the MSI
-        shell: pwsh
-        run: |
-          dotnet tool install --global wix --version 5.0.2
-          wix extension add -g WixToolset.Util.wixext/5.0.2
-          wix build installer/wix/Leclaude.wxs -arch ${{ matrix.name }} -ext WixToolset.Util.wixext `
-            -d AppVersion=0.0.0 -d DllPath=build/${{ matrix.preset }}/LeclaudeShell.dll `
-            -o installer/output/Leclaude-0.0.0-${{ matrix.name }}.msi
-
       - uses: actions/upload-artifact@v4
         with:
           name: installer-${{ matrix.name }}
-          path: |
-            installer/output/*.exe
-            installer/output/*.msi
+          path: installer/output/*.exe
