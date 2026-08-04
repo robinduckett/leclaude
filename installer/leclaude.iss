@@ -30,6 +30,12 @@ VersionInfoVersion={#AppVersion}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+; The robot image shows on the wizard pages. Each display scale has one
+; file with an integer pixel scale. The wildcard lets the setup program
+; select the file that matches the display scale.
+WizardImageFile=..\assets\wizard-image-*.bmp
+WizardSmallImageFile=..\assets\wizard-small-*.bmp
+WizardImageStretch=no
 PrivilegesRequired=admin
 #if Arch == "arm64"
 ArchitecturesAllowed=arm64
