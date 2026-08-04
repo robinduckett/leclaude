@@ -35,3 +35,4 @@ scratch/
 
 # Local Claude Code configuration and skills. These stay private.
 .claude/
+__pycache__/
