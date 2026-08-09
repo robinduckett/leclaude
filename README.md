@@ -6,6 +6,7 @@
 
 Leclaude shows a robot badge in Windows Explorer on each folder that has [Claude Code](https://www.anthropic.com/claude-code) session history.
 When you look through your disk, you can immediately see the folders where you did work with Claude Code.
+A right-click on a project folder shows two menu commands: "Open Claude Code in Terminal" and "Open Claude Code in PowerShell".
 
 Leclaude is a shell extension for Windows 10 and Windows 11, on x64 and ARM64.
 
@@ -16,6 +17,12 @@ Leclaude registers an icon-overlay handler with Explorer.
 For each visible folder, the handler does one fast search in a set in memory.
 When the folder has session history, Explorer draws the robot badge on the folder icon.
 A watcher thread follows the Claude Code data and refreshes the badges.
+
+Leclaude also registers a menu handler.
+When you right-click a project folder, or the background of its open window, the context menu shows two menu commands.
+"Open Claude Code in Terminal" starts Claude Code in Windows Terminal.
+"Open Claude Code in PowerShell" starts Claude Code in PowerShell.
+The menu texts are available in six languages: English, German, French, Spanish, Japanese, and Simplified Chinese.
 
 ![Explorer with the Leclaude badges. Two of the four folders have Claude Code session history.](assets/leclaude-screenshot.png)
 
@@ -31,7 +38,7 @@ The [releases page](../../releases) gives a setup program and a zip file for eac
 The setup program is the recommended installation:
 
 1. Download `LeclaudeSetup-<version>-<processor>.exe`.
-2. Start it and give permission. The installer registers the handler and restarts Explorer.
+2. Start it and give permission. The installer registers the handlers. It asks before it restarts Explorer, waits for your file operations, and opens the open folder windows again.
 
 To remove Leclaude, use "Installed apps" in the Windows settings.
 
@@ -71,6 +78,9 @@ The build uses CMake with the Ninja generator. Visual Studio contains both tools
 - The installation needs administrator rights. Windows accepts overlay registrations in HKLM only.
 - Windows shows a maximum of 15 overlay types for the full system. Cloud-storage tools use many of them. When too many tools compete, Windows can ignore the Leclaude badge. The [ShellExView](https://www.nirsoft.net/utils/shexview.html) tool shows the competition on your system.
 - In a cloud sync folder (for example, a OneDrive folder), Windows 11 can hide third-party badges.
+- On Windows 11, the two menu commands are in "Show more options". The compact menu accepts only entries from an app package, and Leclaude has no app package.
+- Explorer reads the PATH variable at the logon. If you installed the `claude` command after the logon, the menu commands can open a window that does not find `claude`. An Explorer restart corrects this.
+- For a project folder on a network path, cmd cannot use the path as its start folder. It shows a warning and starts in the Windows folder.
 
 ## <img src="assets/preview-16px.png" width="20" alt=""> Problems and solutions
 
@@ -89,6 +99,11 @@ A restart of the computer also corrects this.
 The badge does not show at all:
 Windows shows a maximum of 15 overlay types. Use the ShellExView tool to see the loaded handlers.
 Make sure that the name " Leclaude" is in the first 15 names under the registry key `ShellIconOverlayIdentifiers`.
+
+The menu commands do not show:
+On Windows 11, the commands are in "Show more options" at the end of the context menu.
+The commands show only on a folder that has session history. The badge on the folder shows this.
+The commands also do not show when you select more than one folder.
 
 ## <img src="assets/preview-16px.png" width="20" alt=""> License
 

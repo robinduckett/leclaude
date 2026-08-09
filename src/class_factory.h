@@ -1,4 +1,4 @@
-// Leclaude - the class factory for the overlay handler.
+// Leclaude - the class factory for the two handlers.
 
 #pragma once
 
@@ -8,7 +8,8 @@
 class LeclaudeClassFactory final : public IClassFactory
 {
 public:
-    LeclaudeClassFactory();
+    // The CLSID selects the class that CreateInstance makes.
+    explicit LeclaudeClassFactory(REFCLSID clsid);
 
     // IUnknown
     IFACEMETHODIMP QueryInterface(REFIID riid, void** result) override;
@@ -22,4 +23,5 @@ public:
 private:
     ~LeclaudeClassFactory();
     volatile LONG m_refCount = 1;
+    const CLSID m_clsid;
 };

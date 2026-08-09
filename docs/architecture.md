@@ -6,6 +6,9 @@ Leclaude is a shell extension for Windows 10 and Windows 11.
 It shows a badge on each folder that has Claude Code session history.
 The badge is a small robot icon in a corner of the folder icon.
 Explorer shows the badge in the folder views, on the desktop, and in the file dialogs.
+Leclaude also adds two menu commands to the context menu of a project folder.
+The commands start Claude Code in that folder.
+The DLL holds two COM objects: the overlay handler for the badge, and the menu handler for the menu commands.
 
 ## The mechanism: the icon-overlay handler
 
@@ -76,6 +79,42 @@ When a changed encoded name has no recorded path, the handler does nothing.
 This is safe. Explorer asks again when the user opens the folder view or refreshes it. The badge is then correct.
 This covers the visible folders, and the other folders get the correct badge on the next view.
 
+## The menu handler
+
+The menu handler adds two menu commands to the context menu of a project folder:
+"Open Claude Code in Terminal" and "Open Claude Code in PowerShell".
+The commands show on the folder and on the background of its open window.
+The menu handler supplies two interfaces:
+
+- `IShellExtInit` — Explorer calls `Initialize` before it opens the context menu. The handler reads the target folder from the data object (a selected folder) or from the pidl (the folder background). When the selection has more than one item, the handler keeps no folder.
+- `IContextMenu` — `QueryContextMenu` inserts the menu commands. `InvokeCommand` starts Claude Code. `GetCommandString` gives the verbs `leclaude_terminal` and `leclaude_powershell`. The verbs are language-independent identifiers.
+
+The rules for the menu code:
+
+1. The menu commands show only when the folder is a known project folder. The test is the same hash-set search that `IsMemberOf` uses. The menu code must not touch the disk. A disk access on a dead network path can freeze Explorer while the menu is open.
+2. When Explorer sets the flag `CMF_DEFAULTONLY`, the handler inserts nothing. Explorer sets this flag when it finds the default command for a double-click.
+3. The command IDs stay in the range between `idCmdFirst` and `idCmdLast`. The return value gives the count of the used IDs. Explorer uses the count for the next handler.
+4. The two menu commands show the robot icon. The handler makes a 32-bit bitmap with an alpha channel from the icon resource and sets it with `MIIM_BITMAP`. A cache keeps the bitmap, because an open menu keeps it in use.
+
+The launch commands:
+
+- The Terminal command starts the wt.exe alias of the user with `-d "<folder>" cmd /k claude`. Without Windows Terminal, it starts `cmd /k claude` in a plain console. The wt.exe alias is a reparse point with zero bytes in `%LOCALAPPDATA%\Microsoft\WindowsApps`. The existence test is `GetFileAttributesW`, not a size test.
+- The PowerShell command starts `pwsh.exe` or, without PowerShell 7, `powershell.exe` with `-NoExit -Command claude`.
+- The `/k` flag and the `-NoExit` flag keep the window open. Then the user can read an error message when the `claude` command does not start.
+- All launches use `ShellExecuteExW` with `SEE_MASK_NOASYNC` and the folder as the start folder. The child process gets the Explorer environment. Thus the user PATH finds the `claude` command.
+
+On Windows 11, the menu commands show in "Show more options".
+The compact menu of Windows 11 accepts only `IExplorerCommand` entries from a package with an identity.
+Leclaude has no MSIX package. This is a known limit.
+
+The menu texts are in a STRINGTABLE with six languages: English, German, French, Spanish, Japanese, and Simplified Chinese.
+The English block has the language `LANG_NEUTRAL`.
+The resource loader takes the neutral block for each UI language without its own block.
+Thus English also serves the United States and the United Kingdom.
+
+Explorer reads the registration keys of the menu handler again on each right-click.
+Thus the menu operates immediately after the registration, without an Explorer restart.
+
 The backup for a failed watch: the `.claude` folder can be absent when the handler starts.
 Then the change notification cannot start.
 In this case, the handler examines the modification time of the projects folder in `IsMemberOf`, a maximum of one time in each 5-second period.
@@ -98,14 +137,21 @@ C++ lets contributors compare our code with the reference projects.
 The installation does these steps. It needs administrator rights.
 
 1. Copy the DLL to a permanent location.
-2. Register the COM class: `HKLM\Software\Classes\CLSID\{GUID}\InProcServer32` with the DLL path and `ThreadingModel = Apartment`.
-3. Create the subkey `" Leclaude"` under `ShellIconOverlayIdentifiers`. Set its default value to the CLSID.
-4. Add the CLSID to the "Approved" list: `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved`.
-5. Restart Explorer, or ask the user for a restart.
+2. Register the two COM classes: `HKLM\Software\Classes\CLSID\{GUID}\InProcServer32` with the DLL path and `ThreadingModel = Apartment`. The overlay handler and the menu handler have different GUIDs.
+3. Create the subkey `" Leclaude"` under `ShellIconOverlayIdentifiers`. Set its default value to the CLSID of the overlay handler.
+4. Create the subkey `Leclaude` under `Directory\shellex\ContextMenuHandlers` and under `Directory\Background\shellex\ContextMenuHandlers`, in `HKLM\Software\Classes`. Set each default value to the CLSID of the menu handler.
+5. Add the two CLSIDs to the "Approved" list: `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved`.
+6. Restart Explorer, or ask the user for a restart. The restart is for the badge. The menu commands operate without it.
 
 The removal reverses these steps.
 Explorer and other programs keep a lock on the DLL.
 Thus the removal tool must restart Explorer, or it must schedule the file deletion for the next boot with `MoveFileEx` and `MOVEFILE_DELAY_UNTIL_REBOOT`.
+
+The installer and the scripts do a safe Explorer restart:
+
+1. The warning. The user can close the open Explorer windows first, or select a restart at a later time.
+2. The check for a file operation. The Explorer copy engine runs inside explorer.exe. A stop of Explorer also stops an active copy or move. The test finds the progress window with the class name `OperationStatusWindow`. This class name is verified against a real system.
+3. The window list. The code records the folder path of each open Explorer window through `Shell.Application`. After the restart, it opens each folder again. The window positions and the Windows 11 tabs do not come back. This is a limit of the mechanism.
 
 ## Debug procedure
 
@@ -122,15 +168,18 @@ Thus the removal tool must restart Explorer, or it must schedule the file deleti
 - A change in `%USERPROFILE%\.claude\projects\` updates the badges.
 - When the data folder is absent or not correct, `IsMemberOf` returns `S_FALSE` quickly. It must not hang.
 - Explorer stays fast in a folder with thousands of items.
+- The two menu commands show on a project folder and on its background.
+- The menu commands do not show on a folder without session history, and not on a multi-selection.
+- The string table has the six language blocks.
 
 ## The components
 
 | Component | Function |
 | --- | --- |
-| `LeclaudeShell.dll` | The icon-overlay handler. C++, x64 and ARM64. |
+| `LeclaudeShell.dll` | The overlay handler and the menu handler. C++, x64 and ARM64. |
 | `leclaude.ico` | The badge icon, made from `assets/leclaudebot.png`. Overlay icons are small. The icon must stay clear at 10x10 pixels. |
 | `scripts/install.ps1` and `scripts/uninstall.ps1` | The installation and removal scripts. They register the handler and restart Explorer. |
-| `tests/` | The scan tests and the COM smoke test. The smoke test loads the DLL without the registry. |
+| `tests/` | The scan tests and the two COM smoke tests. The smoke tests load the DLL without the registry. |
 | `leclaude doctor` (possible future tool) | A command-line tool that shows the detection result for a folder. This tool can read `.claude.json`, because it has no speed limits. |
 
 ## Reference projects
@@ -144,6 +193,8 @@ Thus the removal tool must restart Explorer, or it must schedule the file deleti
 - Microsoft: How to Implement Icon Overlay Handlers — https://learn.microsoft.com/en-us/windows/win32/shell/how-to-implement-icon-overlay-handlers
 - Microsoft: How to Register Icon Overlay Handlers — https://learn.microsoft.com/en-us/windows/win32/shell/how-to-register-icon-overlay-handlers
 - Microsoft: IShellIconOverlayIdentifier — https://learn.microsoft.com/en-us/windows/desktop/api/shobjidl_core/nn-shobjidl_core-ishelliconoverlayidentifier
+- Microsoft: How to Implement the IContextMenu Interface — https://learn.microsoft.com/en-us/windows/win32/shell/how-to-implement-the-icontextmenu-interface
+- Microsoft: Creating Shortcut Menu Handlers — https://learn.microsoft.com/en-us/windows/win32/shell/context-menu-handlers
 - Raymond Chen: Why is there a limit of 15 shell icon overlays? — https://devblogs.microsoft.com/oldnewthing/20190313-00/?p=101094
 - Microsoft: Guidance for Implementing In-Process Extensions — https://learn.microsoft.com/en-us/windows/win32/shell/shell-and-managed-code
 - TortoiseGit internals — https://tortoisegit.org/docs/tortoisegit/tgit-app-internals.html

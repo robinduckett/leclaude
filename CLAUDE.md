@@ -7,10 +7,12 @@ This file guides Claude Code when it operates in this repository.
 Leclaude is an open-source shell extension for Windows 10 and Windows 11.
 It shows a small robot badge on each folder that has Claude Code session history.
 The user can then find these folders quickly in Explorer.
+Leclaude also adds two menu commands to the context menu of a project folder.
+The commands start Claude Code in that folder.
 The project is part of the portfolio and blog at robinduckett.com.
 
 Project status: the implementation is complete. The tests pass.
-The manual verification in Explorer is open: install the handler with administrator rights and look at the badges.
+The manual verification in Explorer is open: install the handlers with administrator rights, look at the badges, and try the menu commands.
 
 ## Rule 1: All human-facing English must be ASD-STE100
 
@@ -37,7 +39,10 @@ STE requires one name for one item. This project uses these names:
 | --- | --- | --- |
 | A file-system container | folder | directory |
 | The overlay icon on a folder | badge | overlay icon, emblem, decal |
-| The COM object | handler | extension object |
+| The COM object for the badge | overlay handler | extension object, overlay identifier |
+| The COM object for the menu commands | menu handler | context menu extension |
+| One entry in the context menu | menu command | menu item, menu entry, option |
+| The menu after a right-click | context menu | shortcut menu, right-click menu |
 | The Windows file manager | Explorer | File Explorer, the shell UI |
 | The recorded Claude Code data for a folder | session history | transcripts, logs |
 
@@ -48,10 +53,12 @@ STE requires one name for one item. This project uses these names:
 
 ## Key technical facts
 
-- The handler supplies `IShellIconOverlayIdentifier`. This is the only supported mechanism for a badge on a folder.
+- The overlay handler supplies `IShellIconOverlayIdentifier`. This is the only supported mechanism for a badge on a folder.
+- The menu handler supplies `IShellExtInit` and `IContextMenu`. Its keys are `Directory\shellex\ContextMenuHandlers\Leclaude` and `Directory\Background\shellex\ContextMenuHandlers\Leclaude`, under `HKLM\Software\Classes`. On Windows 11, the menu commands show in "Show more options".
+- The menu texts are in a STRINGTABLE with six languages. The English block is the neutral fallback. The IDs are in `src/resource.h`.
 - The registration is in HKLM only. The installation needs administrator rights.
 - Windows loads a maximum of 15 overlay handlers, in alphabetical order of the subkey names. Leclaude uses the subkey name `" Leclaude"` (one space before the name).
-- `IsMemberOf` must be very fast. It must not touch the disk. The design uses a hash set in memory. See `docs/architecture.md`.
+- `IsMemberOf` must be very fast. It must not touch the disk. The design uses a hash set in memory. The menu handler uses the same set. See `docs/architecture.md`.
 - The detection rule: encode the folder path (each character that is not an ASCII letter or digit becomes a hyphen). Search the encoded name in the set of known project folders from `%USERPROFILE%\.claude\projects\`. Compare without case sensitivity.
 - The stack is plain C++ without ATL, with a static C runtime, for x64 and ARM64.
 
@@ -74,7 +81,7 @@ As an alternative, open the folder in Visual Studio. Visual Studio finds the pre
 
 ## GitHub metadata
 
-Repository description (STE): "Leclaude shows a robot badge in Explorer on each folder that has Claude Code session history."
+Repository description (STE): "Leclaude shows a robot badge in Explorer on each folder that has Claude Code session history, and adds menu commands that start Claude Code."
 
 ## Decided
 
@@ -83,6 +90,9 @@ Repository description (STE): "Leclaude shows a robot badge in Explorer on each 
 - The installer is an Inno Setup program: `installer/leclaude.iss`. The zip file gives the manual alternative: `scripts/install.cmd` starts `scripts/install.ps1` with administrator rights.
 - There is no MSI package. A test on a real system showed the problem: the Restart Manager stopped Explorer and the installation then did not continue. The setup program gives the correct installation experience. Winget accepts a setup program from Inno Setup.
 - The releases come from the GitHub workflow `.github/workflows/release.yml`. The workflow attests each zip file with GitHub artifact attestation.
+- The menu commands come from a classic menu handler with `IShellExtInit` and `IContextMenu`. On Windows 11, they show in "Show more options". There is no `IExplorerCommand` and no sparse MSIX package.
+- The menu texts live in a STRINGTABLE with six languages: English, German, French, Spanish, Japanese, and Simplified Chinese. The English block is the neutral fallback. It also serves the United States and the United Kingdom. The document text of the project stays English.
+- The installer and the scripts do a safe Explorer restart: a warning with a restart-later choice, a check for an active file operation (the window class `OperationStatusWindow`), and the reopening of the open folder windows. See `docs/architecture.md`.
 
 ## Release procedure
 

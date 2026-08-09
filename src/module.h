@@ -19,3 +19,12 @@ inline constexpr wchar_t kClsidString[] = L"{AEB0D999-FC8F-4FFA-B160-D4506164F0E
 inline constexpr wchar_t kOverlayKeyName[] = L" Leclaude";
 
 inline constexpr wchar_t kHandlerDescription[] = L"Leclaude overlay handler";
+
+// The CLSID of the Leclaude menu handler.
+// {F00FE5BC-E333-4E6A-A271-817BA795CFEA}
+inline constexpr CLSID CLSID_LeclaudeContextMenu =
+    { 0xF00FE5BC, 0xE333, 0x4E6A, { 0xA2, 0x71, 0x81, 0x7B, 0xA7, 0x95, 0xCF, 0xEA } };
+
+inline constexpr wchar_t kMenuClsidString[] = L"{F00FE5BC-E333-4E6A-A271-817BA795CFEA}";
+
+inline constexpr wchar_t kMenuHandlerDescription[] = L"Leclaude menu handler";

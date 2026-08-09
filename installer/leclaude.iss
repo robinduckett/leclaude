@@ -51,24 +51,118 @@ ArchitecturesInstallIn64BitMode=x64compatible
 Source: "{#DllPath}"; DestDir: "{app}"; Flags: ignoreversion regserver 64bit
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
-[Run]
-; Explorer reads the overlay list and the badge image only when it starts.
-; The deletion of the icon-cache files prevents an old badge image at some sizes.
-Filename: "{cmd}"; Parameters: "/c taskkill /f /im explorer.exe & del /q ""{localappdata}\Microsoft\Windows\Explorer\iconcache_*.db"" & start explorer.exe"; \
-    Flags: runhidden; StatusMsg: "The installer restarts Explorer now."
-
-[UninstallRun]
-; An Explorer stop releases the lock on the DLL before the file deletion.
-; The Code section starts Explorer again after the removal.
-Filename: "{cmd}"; Parameters: "/c taskkill /f /im explorer.exe & del /q ""{localappdata}\Microsoft\Windows\Explorer\iconcache_*.db"""; \
-    Flags: runhidden; RunOnceId: "StopExplorer"
-
 [Code]
 const
   MOVEFILE_DELAY_UNTIL_REBOOT = 4;
+  { The class name of the Explorer file-operation window. }
+  kFileOperationWindowClass = 'OperationStatusWindow';
+
+var
+  SavedFolders: array of String;
+  UninstallExplorerStopped: Boolean;
 
 function MoveFileExDelayDelete(lpExisting: String; lpNew: Cardinal; dwFlags: Cardinal): Boolean;
   external 'MoveFileExW@kernel32.dll stdcall';
+
+{ The Explorer copy engine runs inside explorer.exe. A stop of Explorer   }
+{ also stops an active copy or move. The test finds the progress window.  }
+function ExplorerHasFileOperation: Boolean;
+begin
+  Result := FindWindowByClassName(kFileOperationWindowClass) <> 0;
+end;
+
+{ Returns True when the restart can continue. In a suppressed-message    }
+{ installation, the answer is Ignore, and the behavior is the same as in }
+{ the earlier versions of this installer.                                }
+function ConfirmFileOperations: Boolean;
+var
+  Answer: Integer;
+begin
+  Result := True;
+  while ExplorerHasFileOperation do
+  begin
+    Answer := SuppressibleMsgBox(
+      'A file operation is in progress in Explorer. A restart of Explorer stops the operation.'#13#10#13#10 +
+      'Wait for the end of the operation. Then select Retry.'#13#10 +
+      'To restart Explorer now, select Ignore.'#13#10 +
+      'To keep Explorer open, select Abort.',
+      mbConfirmation, MB_ABORTRETRYIGNORE, IDIGNORE);
+    if Answer = IDIGNORE then
+      Exit;
+    if Answer = IDABORT then
+    begin
+      Result := False;
+      Exit;
+    end;
+    { The answer is Retry. The loop does the test again. }
+  end;
+end;
+
+function ConfirmRestart(const Question: String): Boolean;
+begin
+  Result := SuppressibleMsgBox(Question, mbConfirmation, MB_YESNO, IDYES) = IDYES;
+end;
+
+{ Records the folder path of each open Explorer window. }
+procedure SaveExplorerWindows;
+var
+  Shell, Windows, Window: Variant;
+  I, Count: Integer;
+  Path, FullName: String;
+begin
+  SetArrayLength(SavedFolders, 0);
+  try
+    Shell := CreateOleObject('Shell.Application');
+    Windows := Shell.Windows;
+    for I := 0 to Windows.Count - 1 do
+    begin
+      try
+        Window := Windows.Item(I);
+        FullName := Window.FullName;
+        if Pos('explorer.exe', Lowercase(FullName)) > 0 then
+        begin
+          Path := Window.Document.Folder.Self.Path;
+          if Path <> '' then
+          begin
+            Count := GetArrayLength(SavedFolders);
+            SetArrayLength(SavedFolders, Count + 1);
+            SavedFolders[Count] := Path;
+          end;
+        end;
+      except
+      end;
+    end;
+  except
+  end;
+end;
+
+{ Stops Explorer and deletes the icon-cache files. The deletion prevents }
+{ an old badge image at some sizes.                                      }
+procedure StopExplorer;
+var
+  ResultCode: Integer;
+begin
+  Exec(ExpandConstant('{cmd}'),
+    '/c taskkill /f /im explorer.exe & del /q "' +
+    ExpandConstant('{localappdata}') + '\Microsoft\Windows\Explorer\iconcache_*.db"',
+    '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+end;
+
+{ Starts Explorer and opens the recorded folder windows again. }
+procedure StartExplorerAndRestoreWindows;
+var
+  ResultCode, I: Integer;
+begin
+  Exec(ExpandConstant('{win}\explorer.exe'), '', '', SW_SHOW, ewNoWait, ResultCode);
+  if GetArrayLength(SavedFolders) > 0 then
+  begin
+    { A short pause lets the shell start before the folder windows open. }
+    Sleep(1500);
+    for I := 0 to GetArrayLength(SavedFolders) - 1 do
+      Exec(ExpandConstant('{win}\explorer.exe'), '"' + SavedFolders[I] + '"', '',
+        SW_SHOW, ewNoWait, ResultCode);
+  end;
+end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
@@ -94,12 +188,60 @@ begin
     MoveFileExDelayDelete(OldName, 0, MOVEFILE_DELAY_UNTIL_REBOOT);
 end;
 
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep <> ssPostInstall then
+    Exit;
+
+  { Explorer reads the overlay list and the badge image only when it     }
+  { starts. Thus the badge needs an Explorer restart. The menu commands  }
+  { operate without the restart.                                        }
+  if not ConfirmRestart(
+    'The setup restarts Explorer now. The restart shows the badges.'#13#10#13#10 +
+    'You can close the open Explorer windows first. The setup opens the open folder windows again after the restart.'#13#10#13#10 +
+    'Restart Explorer now?') then
+  begin
+    SuppressibleMsgBox(
+      'The menu commands operate now. The badges show after the next restart of Explorer or after the next logon.',
+      mbInformation, MB_OK, IDOK);
+    Exit;
+  end;
+  if not ConfirmFileOperations then
+  begin
+    SuppressibleMsgBox(
+      'The menu commands operate now. The badges show after the next restart of Explorer or after the next logon.',
+      mbInformation, MB_OK, IDOK);
+    Exit;
+  end;
+  SaveExplorerWindows;
+  StopExplorer;
+  StartExplorerAndRestoreWindows;
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
-  ResultCode: Integer;
   Target, OldName: String;
   I: Integer;
 begin
+  if CurUninstallStep = usUninstall then
+  begin
+    { An Explorer stop releases the lock on the DLL before the file      }
+    { deletion. Without the stop, the removal schedules the deletion for }
+    { the next start of the computer.                                    }
+    UninstallExplorerStopped := False;
+    if not ConfirmRestart(
+      'The removal restarts Explorer now. The restart removes the badges.'#13#10#13#10 +
+      'You can close the open Explorer windows first. The removal opens the open folder windows again after the restart.'#13#10#13#10 +
+      'Restart Explorer now?') then
+      Exit;
+    if not ConfirmFileOperations then
+      Exit;
+    SaveExplorerWindows;
+    StopExplorer;
+    UninstallExplorerStopped := True;
+    Exit;
+  end;
+
   if CurUninstallStep <> usPostUninstall then
     Exit;
 
@@ -122,6 +264,6 @@ begin
     MoveFileExDelayDelete(ExpandConstant('{app}'), 0, MOVEFILE_DELAY_UNTIL_REBOOT);
   end;
 
-  { The removal stops Explorer. This starts it again. }
-  Exec(ExpandConstant('{win}\explorer.exe'), '', '', SW_SHOW, ewNoWait, ResultCode);
+  if UninstallExplorerStopped then
+    StartExplorerAndRestoreWindows;
 end;

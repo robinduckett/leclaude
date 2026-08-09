@@ -39,11 +39,11 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void** result)
         return E_POINTER;
     }
     *result = nullptr;
-    if (rclsid != CLSID_LeclaudeOverlay)
+    if (rclsid != CLSID_LeclaudeOverlay && rclsid != CLSID_LeclaudeContextMenu)
     {
         return CLASS_E_CLASSNOTAVAILABLE;
     }
-    LeclaudeClassFactory* factory = new (std::nothrow) LeclaudeClassFactory();
+    LeclaudeClassFactory* factory = new (std::nothrow) LeclaudeClassFactory(rclsid);
     if (factory == nullptr)
     {
         return E_OUTOFMEMORY;

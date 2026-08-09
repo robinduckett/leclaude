@@ -21,6 +21,7 @@ set_source_files_properties(src/resources.rc PROPERTIES
 add_library(LeclaudeShell SHARED
   src/dllmain.cpp
   src/class_factory.cpp
+  src/context_menu_handler.cpp
   src/overlay_handler.cpp
   src/project_cache.cpp
   src/project_scan.cpp
@@ -54,3 +55,13 @@ target_link_libraries(leclaude_smoke PRIVATE shell32 ole32)
 add_dependencies(leclaude_smoke LeclaudeShell)
 
 add_test(NAME com_smoke COMMAND leclaude_smoke)
+
+add_executable(leclaude_smoke_menu
+  tests/smoke_menu.cpp
+)
+target_compile_definitions(leclaude_smoke_menu PRIVATE UNICODE _UNICODE)
+target_compile_options(leclaude_smoke_menu PRIVATE /W4 /permissive-)
+target_link_libraries(leclaude_smoke_menu PRIVATE shell32 ole32)
+add_dependencies(leclaude_smoke_menu LeclaudeShell)
+
+add_test(NAME menu_smoke COMMAND leclaude_smoke_menu)

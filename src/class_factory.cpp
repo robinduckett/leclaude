@@ -1,11 +1,12 @@
 #include "class_factory.h"
 
+#include "context_menu_handler.h"
 #include "module.h"
 #include "overlay_handler.h"
 
 #include <new>
 
-LeclaudeClassFactory::LeclaudeClassFactory()
+LeclaudeClassFactory::LeclaudeClassFactory(REFCLSID clsid) : m_clsid(clsid)
 {
     InterlockedIncrement(&g_objectCount);
 }
@@ -57,7 +58,16 @@ IFACEMETHODIMP LeclaudeClassFactory::CreateInstance(IUnknown* outer, REFIID riid
     {
         return CLASS_E_NOAGGREGATION;
     }
-    LeclaudeOverlay* handler = new (std::nothrow) LeclaudeOverlay();
+    // The cast to one concrete interface selects one IUnknown base.
+    IUnknown* handler = nullptr;
+    if (m_clsid == CLSID_LeclaudeOverlay)
+    {
+        handler = static_cast<IShellIconOverlayIdentifier*>(new (std::nothrow) LeclaudeOverlay());
+    }
+    else if (m_clsid == CLSID_LeclaudeContextMenu)
+    {
+        handler = static_cast<IShellExtInit*>(new (std::nothrow) LeclaudeContextMenu());
+    }
     if (handler == nullptr)
     {
         return E_OUTOFMEMORY;
